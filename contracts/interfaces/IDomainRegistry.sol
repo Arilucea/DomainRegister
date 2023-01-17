@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.1;
 
-interface IDomainsRegistry {
+interface IDomainRegistry {
     
     event DomainRegistered(string domain, address owner, uint256 expirationDate);
     event DomainRenewed(string domain, address owner, uint256 expirationDate);
