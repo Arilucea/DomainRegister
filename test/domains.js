@@ -76,8 +76,9 @@ contract('DomainRegistry', (accounts) => {
     });
         
     it('Can refund an expired domain', async () => {        
-        domainRegistry = await DomainRegistry.new({from: owner});
-        await domainRegistry.updateMinLockingTime(1);
+        const domainRegistryAddress = await deployDiamond();
+        domainRegistry = await DomainRegistry.at(domainRegistryAddress);
+        await domainRegistry.updateMinLockingTime(1, {from: owner});
         let secret = await domainRegistry.generateSecret(domain, salt);
         await domainRegistry.requestDomain(secret, {from: requester});
         
@@ -90,8 +91,9 @@ contract('DomainRegistry', (accounts) => {
     });
 
     it('Can rent an expired domain', async () => {        
-        domainRegistry = await DomainRegistry.new({from: owner});
-        await domainRegistry.updateMinLockingTime(1);
+        const domainRegistryAddress = await deployDiamond();
+        domainRegistry = await DomainRegistry.at(domainRegistryAddress);
+        await domainRegistry.updateMinLockingTime(1, {from: owner});
         let secret = await domainRegistry.generateSecret(domain, salt);
         await domainRegistry.requestDomain(secret, {from: requester});
         

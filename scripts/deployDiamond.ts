@@ -6,10 +6,6 @@ import { ethers } from "hardhat";
 //@ts-ignore
 const { getSelectors, FacetCutAction } = require("./libraries/diamond.ts");
 
-const initialUint = 5;
-const initialAddress = "0x0000000000000000000000000000000000000000";
-const version = "0.0.1";
-
 const gasPrice = 15000000000;
 
 async function deployDiamond() {
