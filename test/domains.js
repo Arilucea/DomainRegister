@@ -1,23 +1,29 @@
+const { ethers } = require('hardhat');
 const truffleAssert = require('truffle-assertions');
-const web3 = require('web3');
-const DomainsRegistry = artifacts.require('DomainsRegistry');
+
+const DomainRegistry = artifacts.require('DomainRegistry');
+
+const { deployDiamond } = require('../scripts/deployDiamond.ts')
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-contract('DomainsRegistry', (accounts) => {
+contract('DomainRegistry', (accounts) => {
     
     const owner = accounts[0];
     const requester = accounts[1];
     const nonRequester = accounts[2];
 
     const domain = "myDomain";
-    const salt = web3.utils.asciiToHex("saltInString");
+    const salt = ethers.utils.formatBytes32String("saltInString");
     const metada = "someInformation";
 
+    let domainRegistry;
+
     before(async () => {
-        domainRegistry = await DomainsRegistry.new({from: owner});
+        const domainRegistryAddress = await deployDiamond();
+        domainRegistry = await DomainRegistry.at(domainRegistryAddress);
     });
         
     it('Can rent a domain', async () => {        
@@ -70,8 +76,9 @@ contract('DomainsRegistry', (accounts) => {
     });
         
     it('Can refund an expired domain', async () => {        
-        domainRegistry = await DomainsRegistry.new({from: owner});
-        await domainRegistry.updateMinLockingTime(1);
+        const domainRegistryAddress = await deployDiamond();
+        domainRegistry = await DomainRegistry.at(domainRegistryAddress);
+        await domainRegistry.updateMinLockingTime(1, {from: owner});
         let secret = await domainRegistry.generateSecret(domain, salt);
         await domainRegistry.requestDomain(secret, {from: requester});
         
@@ -84,8 +91,9 @@ contract('DomainsRegistry', (accounts) => {
     });
 
     it('Can rent an expired domain', async () => {        
-        domainRegistry = await DomainsRegistry.new({from: owner});
-        await domainRegistry.updateMinLockingTime(1);
+        const domainRegistryAddress = await deployDiamond();
+        domainRegistry = await DomainRegistry.at(domainRegistryAddress);
+        await domainRegistry.updateMinLockingTime(1, {from: owner});
         let secret = await domainRegistry.generateSecret(domain, salt);
         await domainRegistry.requestDomain(secret, {from: requester});
         
@@ -94,12 +102,12 @@ contract('DomainsRegistry', (accounts) => {
         let tx = await domainRegistry.rentDomain(domain, salt, 1, metada, {from: requester, value: (rentPrice*10)}); 
         await sleep(5000);
 
-        secret = await domainRegistry.generateSecret(domain, web3.utils.asciiToHex("saltInStrings"));
+        secret = await domainRegistry.generateSecret(domain, ethers.utils.formatBytes32String ("saltInStrings"));
         await domainRegistry.requestDomain(secret, {from: nonRequester});
         
         await sleep(1000);
         rentPrice = await domainRegistry.rentPrice(domain, 1);
-        tx = await domainRegistry.rentDomain(domain, web3.utils.asciiToHex("saltInStrings"), 1, metada, {from: nonRequester, value: (rentPrice*10)}); 
+        tx = await domainRegistry.rentDomain(domain, ethers.utils.formatBytes32String ("saltInStrings"), 1, metada, {from: nonRequester, value: (rentPrice*10)}); 
         await sleep(5000);
 
         // Original owner request the refund
